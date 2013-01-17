@@ -10,6 +10,8 @@
  ******************************************************************************/ 
 package org.jboss.tools.jst.web.kb.internal;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -26,13 +28,28 @@ import org.w3c.dom.Element;
  *
  */
 public class NameSpaceStorage implements INameSpaceStorage {
+	KbProject project;
 	private Map<String, Set<String>> urisByPrefix = new HashMap<String, Set<String>>();
 
-	public NameSpaceStorage() {
+	public NameSpaceStorage(KbProject project) {
+		this.project = project;
 	}
 
 	public synchronized void add(String prefix, String uri) {
 		Set<String> uris = urisByPrefix.get(prefix);
+		if(uris == null || !uris.contains(uri)) {
+			//check that uri is well-formed
+			try {
+				new URI(uri);
+			} catch (URISyntaxException e) {
+				//if uri is not well-formed, do nothing
+				return;
+			}
+			//new uri, check that it exists
+			if(project.getTagLibraries(uri).length == 0) {
+				return;
+			}
+		}
 		if(uris == null) {
 			uris = new HashSet<String>();
 			urisByPrefix.put(prefix, uris);

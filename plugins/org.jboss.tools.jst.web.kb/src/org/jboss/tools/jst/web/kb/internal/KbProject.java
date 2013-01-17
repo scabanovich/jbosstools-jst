@@ -96,7 +96,7 @@ public class KbProject extends KbObject implements IKbProject {
 
 	IncludeModel includeModel = new IncludeModel();
 
-	NameSpaceStorage namespacesStorage = new NameSpaceStorage();
+	NameSpaceStorage namespacesStorage = new NameSpaceStorage(this);
 
 	public KbProject() {}
 
