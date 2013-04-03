@@ -1,0 +1,444 @@
+From 66c5eda4ec9e9289fee151311953c9acbb67ba10 Mon Sep 17 00:00:00 2001
+From: Viacheslav Kabanovich <scabanovich@exadel.com>
+Date: Mon, 1 Apr 2013 16:19:33 -0700
+Subject: [PATCH] JBIDE-13889 Add Items section to New Listview wizard
+
+Implemented Items section for New Listview wizard.
+Any item can be made a divider. Test is added.
+---
+ .../images/xstudio/wizards/CollapsibleWizBan.png   |  Bin 2053 -> 1805 bytes
+ .../ui/palette/html/jquery/wizard/ItemsEditor.java |    5 ++
+ .../html/jquery/wizard/JQueryConstants.java        |    4 ++
+ .../jquery/wizard/JQueryFieldEditorFactory.java    |    8 +++
+ .../ui/palette/html/jquery/wizard/ListEditor.java  |   67 ++++++++++++++++++++
+ .../html/jquery/wizard/NewListviewWizard.java      |   20 ++++--
+ .../html/jquery/wizard/NewListviewWizardPage.java  |   46 ++++++++++++--
+ .../web/ui/palette/html/wizard/WizardMessages.java |    2 +
+ .../web/ui/palette/html/wizard/messages.properties |    2 +
+ .../ui/test/NewJQueryMobilePaletteWizardTest.java  |    8 +++
+ 10 files changed, 151 insertions(+), 11 deletions(-)
+ create mode 100644 plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/jquery/wizard/ListEditor.java
+
+diff --git a/plugins/org.jboss.tools.jst.web.ui/images/xstudio/wizards/CollapsibleWizBan.png b/plugins/org.jboss.tools.jst.web.ui/images/xstudio/wizards/CollapsibleWizBan.png
+index 0e21f71377835fe9143321d74d519fc8bffe3496..fa011bb1e46dbdac915a2a1a541cac491a3b31d0 100644
+GIT binary patch
+delta 1743
+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
+
+delta 1993
+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
+bE3*FqXd1vg){Xv@00000NkvXXu0mjfG@Rv2
+
+diff --git a/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/jquery/wizard/ItemsEditor.java b/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/jquery/wizard/ItemsEditor.java
+index 4025bbc..686753d 100644
+--- a/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/jquery/wizard/ItemsEditor.java
++++ b/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/jquery/wizard/ItemsEditor.java
+@@ -175,6 +175,7 @@ public class ItemsEditor implements SelectionListener, JQueryConstants {
+ 		for (String editorID: s.values.keySet()) {
+ 			page.getEditor(editorID).setValue(s.getValue(editorID));
+ 		}
++		updateEnablement();
+ 	}
+ 
+ 	/**
+@@ -196,6 +197,10 @@ public class ItemsEditor implements SelectionListener, JQueryConstants {
+ 		return false;
+ 	}
+ 
++	public void updateEnablement() {
++		
++	}
++
+ 	@Override
+ 	public void widgetSelected(SelectionEvent e) {
+ 		setSelected(tab.getSelectionIndex());
+diff --git a/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/jquery/wizard/JQueryConstants.java b/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/jquery/wizard/JQueryConstants.java
+index 0b9fb9c..9c23d24 100644
+--- a/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/jquery/wizard/JQueryConstants.java
++++ b/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/jquery/wizard/JQueryConstants.java
+@@ -39,6 +39,7 @@ public interface JQueryConstants extends HTMLConstants {
+ 	public String ATTR_DATA_ROLE = "data-role";
+ 	public String ATTR_DATA_THEME = "data-theme";
+ 	public String ATTR_DATA_TRACK_THEME = "data-track-theme";
++	public String ATTR_DATA_DIVIDER_THEME = "data-divider-theme";
+ 	public String ATTR_DATA_TRANSITION = "data-transition";
+ 	public String ATTR_DATA_TYPE = "data-type";
+ 	public String ATTR_DATA_CORNERS = "data-corners";
+@@ -95,6 +96,7 @@ public interface JQueryConstants extends HTMLConstants {
+ 	public String ROLE_GROUP = "controlgroup";
+ 	public String ROLE_HEADER = "header";
+ 	public String ROLE_LISTVIEW = "listview";
++	public String ROLE_DIVIDER = "list-divider";
+ 	public String ROLE_NAVBAR = "navbar";
+ 	public String ROLE_PAGE = "page";
+ 	public String ROLE_POPUP = "popup";
+@@ -141,6 +143,7 @@ public interface JQueryConstants extends HTMLConstants {
+ 	public String EDITOR_ID_THEME = "theme";
+ 	public String EDITOR_ID_TRACK_THEME = "track-theme";
+ 	public String EDITOR_ID_CONTENT_THEME = "content-theme";
++	public String EDITOR_ID_DIVIDER_THEME = "divider-theme";
+ 
+ 	public String EDITOR_ID_NUMBERED = "numbered";
+ 	public String EDITOR_ID_READ_ONLY = "read-only";
+@@ -158,6 +161,7 @@ public interface JQueryConstants extends HTMLConstants {
+ 
+ 	public String EDITOR_ID_ACTION = "action";
+ 	public String EDITOR_ID_DISABLED = "disabled";
++	public String EDITOR_ID_DIVIDER = "divider";
+ 	public String EDITOR_ID_ICON = "icon";
+ 	public String EDITOR_ID_ICON_ONLY = "icon-only";
+ 	public String EDITOR_ID_ICON_POS = "icon-pos";
+diff --git a/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/jquery/wizard/JQueryFieldEditorFactory.java b/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/jquery/wizard/JQueryFieldEditorFactory.java
+index 3636aad..5f653ac 100644
+--- a/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/jquery/wizard/JQueryFieldEditorFactory.java
++++ b/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/jquery/wizard/JQueryFieldEditorFactory.java
+@@ -55,6 +55,10 @@ public class JQueryFieldEditorFactory implements JQueryConstants {
+ 		return SwtFieldEditorFactory.INSTANCE.createComboEditor(EDITOR_ID_TRACK_THEME, WizardMessages.trackThemeLabel, toList(THEMES), "", true);
+ 	}
+ 
++	public static IFieldEditor createDividerThemeEditor() {
++		return SwtFieldEditorFactory.INSTANCE.createComboEditor(EDITOR_ID_DIVIDER_THEME, WizardMessages.dividerThemeLabel, toList(THEMES), "", true);
++	}
++
+ 	public static IFieldEditor createDataContentThemeEditor() {
+ 		return SwtFieldEditorFactory.INSTANCE.createComboEditor(EDITOR_ID_CONTENT_THEME, WizardMessages.contentThemeLabel, toList(THEMES), "", true);
+ 	}
+@@ -83,6 +87,10 @@ public class JQueryFieldEditorFactory implements JQueryConstants {
+ 		return SwtFieldEditorFactory.INSTANCE.createCheckboxEditor(EDITOR_ID_READ_ONLY, WizardMessages.readonlyLabel, false);
+ 	}
+ 
++	public static IFieldEditor createDividerEditor() {
++		return SwtFieldEditorFactory.INSTANCE.createCheckboxEditor(EDITOR_ID_DIVIDER, WizardMessages.dividerLabel, false);
++	}
++
+ 	public static IFieldEditor createAutodividersEditor() {
+ 		return SwtFieldEditorFactory.INSTANCE.createCheckboxEditor(EDITOR_ID_AUTODIVIDERS, WizardMessages.autodividersLabel, false);
+ 	}
+diff --git a/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/jquery/wizard/ListEditor.java b/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/jquery/wizard/ListEditor.java
+new file mode 100644
+index 0000000..9c2e140
+--- /dev/null
++++ b/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/jquery/wizard/ListEditor.java
+@@ -0,0 +1,67 @@
++/******************************************************************************* 
++ * Copyright (c) 2013 Red Hat, Inc. 
++ * Distributed under license by Red Hat, Inc. All rights reserved. 
++ * This program is made available under the terms of the 
++ * Eclipse Public License v1.0 which accompanies this distribution, 
++ * and is available at http://www.eclipse.org/legal/epl-v10.html 
++ * 
++ * Contributors: 
++ * Red Hat, Inc. - initial API and implementation 
++ ******************************************************************************/ 
++package org.jboss.tools.jst.web.ui.palette.html.jquery.wizard;
++
++import org.jboss.tools.common.ui.widget.editor.IFieldEditor;
++import org.jboss.tools.jst.web.ui.palette.html.wizard.AbstractNewHTMLWidgetWizardPage;
++
++/**
++ * 
++ * @author Viacheslav Kabanovich
++ *
++ */
++public class ListEditor extends ItemsEditor {
++
++	public ListEditor(AbstractNewHTMLWidgetWizardPage page, int minNumber, int maxNumber) {
++		super(page, minNumber, maxNumber);
++		for (int i = 0; i < maxNumber; i++) {
++			setLabel(i, "Item " + (i + 1));
++			setURL(i, "item" + (i + 1) + ".html");
++			items[i].setValue(EDITOR_ID_DIVIDER, FALSE);
++		}
++	}
++
++	protected void createItemEditors() {
++		addItemEditor(JQueryFieldEditorFactory.createLabelEditor());
++		addItemEditor(JQueryFieldEditorFactory.createDividerEditor());
++		addItemEditor(JQueryFieldEditorFactory.createURLEditor());
++	}
++
++	public String getLabel(int i) {
++		return items[i].getValue(EDITOR_ID_LABEL);
++	}
++
++	public void setLabel(int i, String value) {
++		items[i].setValue(EDITOR_ID_LABEL, value);
++	}
++
++	public String getURL(int i) {
++		return items[i].getValue(EDITOR_ID_URL);
++	}
++
++	public void setURL(int i, String value) {
++		items[i].setValue(EDITOR_ID_URL, value);
++	}
++
++	public boolean isDivider(int i) {
++		return TRUE.equals(items[i].getValue(EDITOR_ID_DIVIDER));
++	}
++
++	public void updateEnablement() {
++		IFieldEditor read = page.getEditor(EDITOR_ID_READ_ONLY);
++		IFieldEditor url = page.getEditor(EDITOR_ID_URL);
++		IFieldEditor div = page.getEditor(EDITOR_ID_DIVIDER);
++		if(read != null && url != null && div != null) {
++			boolean en = !TRUE.equals(page.getEditorValue(EDITOR_ID_READ_ONLY)) && !TRUE.equals(page.getEditorValue(EDITOR_ID_DIVIDER));
++			url.setEnabled(en);
++		}		
++	}
++}
+diff --git a/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/jquery/wizard/NewListviewWizard.java b/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/jquery/wizard/NewListviewWizard.java
+index 541c011..091aa86 100644
+--- a/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/jquery/wizard/NewListviewWizard.java
++++ b/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/jquery/wizard/NewListviewWizard.java
+@@ -31,10 +31,10 @@ public class NewListviewWizard extends NewJQueryWidgetWizard<NewListviewWizardPa
+ 	}
+ 
+ 	protected void addContent(ElementNode parent) {
+-		String themeValue = page.getEditorValue(EDITOR_ID_THEME);
+ 		String listTagName = isTrue(EDITOR_ID_NUMBERED) ? TAG_OL : TAG_UL;
+ 		ElementNode listRoot = parent.addChild(listTagName);
+ 		listRoot.addAttribute(ATTR_DATA_ROLE, ROLE_LISTVIEW);
++//		listRoot.addAttribute("data-filter-reveal", TRUE);
+ 		if(isTrue(EDITOR_ID_AUTODIVIDERS)) {
+ 			listRoot.addAttribute(ATTR_DATA_AUTODIVIDERS, TRUE);
+ 		}
+@@ -44,17 +44,25 @@ public class NewListviewWizard extends NewJQueryWidgetWizard<NewListviewWizardPa
+ 		if(isTrue(EDITOR_ID_INSET)) {
+ 			listRoot.addAttribute(ATTR_DATA_INSET, TRUE);
+ 		}
++		String themeValue = page.getEditorValue(EDITOR_ID_THEME);
+ 		if(themeValue.length() > 0) {
+ 			listRoot.addAttribute(ATTR_DATA_THEME, themeValue);
+ 		}
+-		for (int i = 1; i < 3; i++) {
+-			String text = "Item " + i;
+-			if(!isTrue(EDITOR_ID_READ_ONLY)) {
++		String dividerThemeValue = page.getEditorValue(EDITOR_ID_DIVIDER_THEME);
++		if(dividerThemeValue.length() > 0) {
++			listRoot.addAttribute(ATTR_DATA_DIVIDER_THEME, dividerThemeValue);
++		}
++		for (int i = 0; i < page.items.getNumber(); i++) {
++			String text = page.items.getLabel(i);
++			if(!isTrue(EDITOR_ID_READ_ONLY) && !page.items.isDivider(i)) {
+ 				ElementNode li = listRoot.addChild(TAG_LI, "");
+ 				ElementNode a = li.addChild(TAG_A, text);
+-				a.addAttribute(ATTR_HREF, "item" + i + ".html");
++				a.addAttribute(ATTR_HREF, page.items.getURL(i));
+ 			} else {
+-				listRoot.addChild(TAG_LI, text);
++				ElementNode li = listRoot.addChild(TAG_LI, text);
++				if(page.items.isDivider(i)) {
++					li.addAttribute(ATTR_DATA_ROLE, ROLE_DIVIDER);
++				}
+ 			}
+ 		}
+ 	}
+diff --git a/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/jquery/wizard/NewListviewWizardPage.java b/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/jquery/wizard/NewListviewWizardPage.java
+index 3e9c1a1..764d4b9 100644
+--- a/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/jquery/wizard/NewListviewWizardPage.java
++++ b/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/jquery/wizard/NewListviewWizardPage.java
+@@ -10,6 +10,8 @@
+  ******************************************************************************/ 
+ package org.jboss.tools.jst.web.ui.palette.html.jquery.wizard;
+ 
++import java.beans.PropertyChangeEvent;
++
+ import org.eclipse.swt.widgets.Composite;
+ import org.jboss.tools.common.ui.widget.editor.IFieldEditor;
+ import org.jboss.tools.jst.web.ui.palette.html.wizard.AbstractNewHTMLWidgetWizardPage;
+@@ -21,6 +23,7 @@ import org.jboss.tools.jst.web.ui.palette.html.wizard.WizardMessages;
+  *
+  */
+ public class NewListviewWizardPage extends AbstractNewHTMLWidgetWizardPage implements JQueryConstants {
++	ListEditor items = new ListEditor(this, 1, 8);
+ 
+ 	public NewListviewWizardPage() {
+ 		super("newListview", WizardMessages.newListviewWizardTitle);
+@@ -28,23 +31,56 @@ public class NewListviewWizardPage extends AbstractNewHTMLWidgetWizardPage imple
+ 	}
+ 
+ 	protected void createFieldPanel(Composite parent) {
++		Composite[] columns = NewRangeSliderWizardPage.createTwoColumns(parent);
++		Composite left = columns[0];
++		Composite right = columns[1];
++
+ 		IFieldEditor numbered = JQueryFieldEditorFactory.createNumberedEditor();
+-		addEditor(numbered, parent);
++		addEditor(numbered, left);
+ 		
+ 		IFieldEditor readonly = JQueryFieldEditorFactory.createReadonlyEditor();
+-		addEditor(readonly, parent);
++		addEditor(readonly, right);
+ 
+ 		IFieldEditor autodividers = JQueryFieldEditorFactory.createAutodividersEditor();
+-		addEditor(autodividers, parent);
++		addEditor(autodividers, left);
+ 
+ 		IFieldEditor searchFilter = JQueryFieldEditorFactory.createSearchFilterEditor();
+-		addEditor(searchFilter, parent);
++		addEditor(searchFilter, right);
+ 
+ 		IFieldEditor inset = JQueryFieldEditorFactory.createInsetEditor();
+-		addEditor(inset, parent);
++		addEditor(inset, left);
++
++		IFieldEditor span = JQueryFieldEditorFactory.createSpan("span", 3);
++		addEditor(span, right);
++
++		items.createControl(parent, WizardMessages.itemsLabel);
++
++		getEditor(EDITOR_ID_NUMBER_OF_ITEMS).setValue("3");
+ 
+ 		IFieldEditor theme = JQueryFieldEditorFactory.createDataThemeEditor();
+ 		addEditor(theme, parent, true);
++
++		IFieldEditor dividerTheme = JQueryFieldEditorFactory.createDividerThemeEditor();
++		addEditor(dividerTheme, parent, true);
++	}
++
++	@Override
++	public void propertyChange(PropertyChangeEvent evt) {
++		if(items.isSwitching) {
++			return;
++		}
++		String name = evt.getPropertyName();
++		String value = evt.getNewValue().toString();
++		if(items.onPropertyChange(name, value)) {
++		}
++		
++		items.updateEnablement();
++
++		super.propertyChange(evt);
++	}
++
++	protected int getAdditionalHeight() {
++		return 130;
+ 	}
+ 
+ }
+diff --git a/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/wizard/WizardMessages.java b/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/wizard/WizardMessages.java
+index 475fe75..6aaaaf9 100644
+--- a/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/wizard/WizardMessages.java
++++ b/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/wizard/WizardMessages.java
+@@ -36,9 +36,11 @@ public class WizardMessages extends NLS {
+ 	public static String cornersLabel;
+ 	public static String themeLabel;
+ 	public static String trackThemeLabel;
++	public static String dividerThemeLabel;
+ 	public static String contentThemeLabel;
+ 	public static String numberedLabel;
+ 	public static String readonlyLabel;
++	public static String dividerLabel;
+ 	public static String autodividersLabel;
+ 	public static String searchFilterLabel;
+ 	public static String insetLabel;
+diff --git a/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/wizard/messages.properties b/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/wizard/messages.properties
+index 68e48a1..50a5349 100644
+--- a/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/wizard/messages.properties
++++ b/plugins/org.jboss.tools.jst.web.ui/src/org/jboss/tools/jst/web/ui/palette/html/wizard/messages.properties
+@@ -14,9 +14,11 @@ legendLabel=Legend:
+ miniLabel=Mini:
+ themeLabel=Theme:
+ trackThemeLabel=Track Theme:
++dividerThemeLabel=Divider Theme:
+ contentThemeLabel=Content Theme:
+ numberedLabel=Numbered:
+ readonlyLabel=Read-only:
++dividerLabel=Divider:
+ autodividersLabel=Autodividers:
+ searchFilterLabel=Search filter:
+ insetLabel=Inset:
+diff --git a/tests/org.jboss.tools.jst.web.ui.test/src/org/jboss/tools/jst/web/ui/test/NewJQueryMobilePaletteWizardTest.java b/tests/org.jboss.tools.jst.web.ui.test/src/org/jboss/tools/jst/web/ui/test/NewJQueryMobilePaletteWizardTest.java
+index 6945008..6e106bd 100644
+--- a/tests/org.jboss.tools.jst.web.ui.test/src/org/jboss/tools/jst/web/ui/test/NewJQueryMobilePaletteWizardTest.java
++++ b/tests/org.jboss.tools.jst.web.ui.test/src/org/jboss/tools/jst/web/ui/test/NewJQueryMobilePaletteWizardTest.java
+@@ -181,7 +181,15 @@ public class NewJQueryMobilePaletteWizardTest extends AbstractPaletteEntryTest i
+ 
+ 		NewListviewWizardPage wizardPage = (NewListviewWizardPage)currentPage;
+ 		NewListviewWizard wizard = (NewListviewWizard)wizardPage.getWizard();
++		Display.getCurrent().readAndDispatch();
+ 		
++		assertEquals("3", wizardPage.getEditorValue(EDITOR_ID_NUMBER_OF_ITEMS));
++
++		assertTextDoesNotExist(wizard, "Item 4");
++		wizardPage.setEditorValue(EDITOR_ID_NUMBER_OF_ITEMS, "4");
++		assertEquals("4", wizardPage.getEditorValue(EDITOR_ID_NUMBER_OF_ITEMS));
++		assertTextExists(wizard, "Item 4");		
++	
+ 		wizardPage.setEditorValue(EDITOR_ID_AUTODIVIDERS, TRUE);
+ 		assertAttrExists(wizard, ATTR_DATA_AUTODIVIDERS, TRUE);
+ 
+-- 
+1.7.10.4
+

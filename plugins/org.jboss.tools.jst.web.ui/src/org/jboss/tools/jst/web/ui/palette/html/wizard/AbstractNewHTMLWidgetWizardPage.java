@@ -12,6 +12,8 @@ package org.jboss.tools.jst.web.ui.palette.html.wizard;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,12 +34,14 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.jboss.tools.common.model.ui.editors.dnd.DefaultDropWizardPage;
 import org.jboss.tools.common.ui.widget.editor.CheckBoxFieldEditor;
 import org.jboss.tools.common.ui.widget.editor.IFieldEditor;
+import org.jboss.tools.common.util.FileUtil;
 import org.jboss.tools.common.util.SwtUtil;
 import org.jboss.tools.jst.web.ui.WebUiPlugin;
 
@@ -70,7 +74,7 @@ public class AbstractNewHTMLWidgetWizardPage extends DefaultDropWizardPage imple
 
 	@Override
 	public void createControl(Composite parent) {
-		Composite panel = new Composite(parent, SWT.NONE);
+		final Composite panel = new Composite(parent, SWT.NONE);
 		GridData d = new GridData(GridData.FILL_BOTH);
 		panel.setLayoutData(d);
 		GridLayout layout = new GridLayout(3, false);
@@ -87,7 +91,10 @@ public class AbstractNewHTMLWidgetWizardPage extends DefaultDropWizardPage imple
 		d.horizontalSpan = 2;
 		fields.setLayoutData(d);
 		fields.setLayout(new GridLayout(3, false));
+
+		setUpdating(true);
 		createFieldPanel(fields);
+		setUpdating(false);
 		
 		createSeparator(left);
 		
@@ -120,7 +127,7 @@ public class AbstractNewHTMLWidgetWizardPage extends DefaultDropWizardPage imple
 		
 		text = new Text(previewPanel, SWT.MULTI | SWT.READ_ONLY | SWT.BORDER | SWT.V_SCROLL);
 		text.setLayoutData(new GridData(GridData.FILL_BOTH));
-			text.setText("<html><body>aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</body></html>");
+			text.setText("<html><body>aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</body></html>");
 
 		/*
 		//We can provide webkit in this way
@@ -136,7 +143,11 @@ public class AbstractNewHTMLWidgetWizardPage extends DefaultDropWizardPage imple
 			try {
 				browser = new Browser(browserPanel, SWT.READ_ONLY | SWT.MOZILLA | SWT.NO_SCROLL);
 			} catch (SWTError e) {
-				browser = new Browser(browserPanel, SWT.READ_ONLY | SWT.WEBKIT | SWT.NO_SCROLL);
+				try {
+					browser = new Browser(browserPanel, SWT.READ_ONLY | SWT.NONE | SWT.NO_SCROLL);
+				} catch (SWTError e1) {
+					WebUiPlugin.getDefault().logError("Cannot create neither Mozilla nor default browser.", e1);
+				}
 			}
 		} finally {
 			/*
@@ -152,20 +163,32 @@ public class AbstractNewHTMLWidgetWizardPage extends DefaultDropWizardPage imple
 		gridData.verticalAlignment = SWT.FILL;
 		gridData.grabExcessHorizontalSpace = true;
 		gridData.grabExcessVerticalSpace = true;
-		browser.setLayoutData(gridData);
-		browser.pack();
+		if(browser != null) {
+			browser.setLayoutData(gridData);
+			browser.pack();
+		}
 
 		createDisclaimer(browserPanel);
 
 		previewPanel.setWeights(new int[]{4,6});
 		
-		updatePreviewContent();
+//		updatePreviewContent();
 
 		setControl(panel);
-		setVisible(true);
-		runValidation();
-		flipPreview(true);
+		
+		Display.getCurrent().asyncExec(new Runnable() {
+			public void run() {
+				flipPreview(true);
+				updatePreviewContent();
+//				setVisible(true);
+				runValidation();
+			}
+		});
 //		parent.pack(true);
+	}
+
+	public String getBrowserType() {
+		return browser == null ? null : browser.getBrowserType();
 	}
 
 	static final String SECTION_NAME = "InsertTag";
@@ -381,19 +404,21 @@ public class AbstractNewHTMLWidgetWizardPage extends DefaultDropWizardPage imple
 	int lastShowShellWidth = -1;
 
 	private void updatePreviewPanel(boolean show, boolean first) {
-		previewPanel.update();
-		previewPanel.layout();
 		Shell shell = previewPanel.getShell();
+		shell.update();
+		shell.layout();
+
 		Rectangle r = shell.getBounds();
 		if(show) {
 			lastHideShellWidth = r.width;
 		} else {
 			lastShowShellWidth = r.width;
 		}
-		int width = (show) ? (lastShowShellWidth < 0 ? r.width + 300 : lastShowShellWidth) : 
+		int width = (first) ? shell.computeSize(-1, -1).x : 
+			(show) ? (lastShowShellWidth < 0 ? r.width + 300 : lastShowShellWidth) : 
 			(lastHideShellWidth < 0 ? r.width - 300 : lastHideShellWidth);
 		if(first) {
-			int dh = getAdditionalHeight();
+			int dh =  left.computeSize(-1, -1).y - left.getSize().y;  //getAdditionalHeight();
 			if(dh > 0) {
 				r.y -= dh / 2;
 				r.height += dh;
@@ -406,9 +431,43 @@ public class AbstractNewHTMLWidgetWizardPage extends DefaultDropWizardPage imple
 		shell.layout();
 	}
 
+	static File temp = null;
+	static String url = null;
+	
+	File getFile() {
+		if(temp == null) {
+			try {
+				temp = File.createTempFile("jquery_preview", ".html");
+				url = temp.toURI().toURL().toString();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return temp;
+	}
+
 	protected void updatePreviewContent() {
 		text.setText(formatText(getWizard().getTextForTextView()));
-		browser.setText(getWizard().getTextForBrowser());
+		if(browser == null) {
+			return;
+		}
+		File f = getFile();
+		FileUtil.writeFile(f, getWizard().getTextForBrowser());
+		final Control c = Display.getCurrent().getFocusControl();
+		if(browser.getUrl() == null || !browser.getUrl().endsWith(f.getName())
+				||"mozilla".equals(getBrowserType())) {
+			browser.setUrl(url);
+		} else {
+			browser.refresh();
+		}
+		if(c != null) {
+			Display.getCurrent().asyncExec(new Runnable() {
+				public void run() {
+					c.forceFocus();
+				}
+			});
+		}
+//		browser.setText(getWizard().getTextForBrowser());
 	}
 
 	protected String formatText(String text) {
