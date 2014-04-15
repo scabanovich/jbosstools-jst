@@ -109,6 +109,9 @@ public class PaletteManager {
 			String name = g.getAttributeValue(XModelObjectConstants.ATTR_NAME);
 			if(name.indexOf('.') >= 0) {
 				name = name.substring(name.indexOf('.') + 1);
+				if("JS/CSS".equals(name)) {
+					return;
+				}
 			}
 			result.add(new RunnablePaletteItem(category, version, name));
 		} else {
