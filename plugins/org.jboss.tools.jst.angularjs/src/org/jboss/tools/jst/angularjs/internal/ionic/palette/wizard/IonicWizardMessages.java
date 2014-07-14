@@ -8,7 +8,7 @@
  * Contributors: 
  * Red Hat, Inc. - initial API and implementation 
  ******************************************************************************/ 
-package org.jboss.tools.jst.angularjs.internal.palette.wizard;
+package org.jboss.tools.jst.angularjs.internal.ionic.palette.wizard;
 
 import org.eclipse.osgi.util.NLS;
 
@@ -18,7 +18,7 @@ import org.eclipse.osgi.util.NLS;
  *
  */
 public class IonicWizardMessages extends NLS {
-	private static final String BUNDLE_NAME = "org.jboss.tools.jst.angularjs.internal.palette.wizard.messages"; //$NON-NLS-1$
+	private static final String BUNDLE_NAME = "org.jboss.tools.jst.angularjs.internal.ionic.palette.wizard.messages"; //$NON-NLS-1$
 
 	public static String newContentWizardTitle;
 	public static String newContentWizardDescription;
