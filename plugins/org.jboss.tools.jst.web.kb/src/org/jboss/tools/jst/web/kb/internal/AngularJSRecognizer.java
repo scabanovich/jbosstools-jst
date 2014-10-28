@@ -20,6 +20,7 @@ import org.eclipse.wst.xml.core.internal.provisional.document.IDOMDocument;
 import org.jboss.tools.common.el.core.resolver.ELContext;
 import org.jboss.tools.common.text.ext.util.StructuredModelWrapper;
 import org.jboss.tools.common.text.ext.util.StructuredModelWrapper.ICommand;
+import org.jboss.tools.common.util.FileUtil;
 import org.jboss.tools.jst.web.kb.WebKbPlugin;
 import org.jboss.tools.jst.web.kb.taglib.ITagLibrary;
 import org.w3c.dom.NodeList;
@@ -35,6 +36,14 @@ public class AngularJSRecognizer extends HTMLRecognizer {
 	@Override
 	protected boolean recalculateResult(ITagLibrary lib, ELContext context, IFile file) {
 		if(super.recalculateResult(lib, context, file)) {
+			return isProbablyUsed(file);
+		}
+		return false;
+	}
+
+	@Override
+	public boolean isProbablyUsed(IFile file) {
+		if(FileUtil.isDoctypeHTML(file)) {
 			final Boolean[] result = new Boolean[] {JSRecognizer.getJSReferenceVersion(file, ANGULAR_JS_LIB_NAME)!=null};
 			if(!result[0]) {
 				StructuredModelWrapper.execute(file, new ICommand() {

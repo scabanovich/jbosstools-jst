@@ -29,6 +29,7 @@ import org.jboss.tools.common.model.ui.ModelUIPlugin;
 import org.jboss.tools.common.model.ui.views.palette.IPaletteAdapter;
 import org.jboss.tools.common.model.ui.views.palette.IPalettePageAdapter;
 import org.jboss.tools.common.model.ui.views.palette.PaletteCreator;
+import org.jboss.tools.jst.web.ui.palette.PaletteAdapter;
 
 /**
  * 
@@ -89,6 +90,9 @@ public class PalettePageImpl extends Page implements PalettePage, IPalettePageAd
 				}else{
 					reload();
 				}
+			} else if(contents.computeRecognized()) {
+				PaletteAdapter a = (PaletteAdapter)getAdapter();
+				a.filter();
 			}
 		}
 		

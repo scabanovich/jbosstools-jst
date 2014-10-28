@@ -25,4 +25,9 @@ public class HTML5Recognizer extends HTMLRecognizer {
 	protected boolean recalculateResult(ITagLibrary lib, ELContext context, IFile file) {
 		return FileUtil.isDoctypeHTML(file);
 	}
+
+	@Override
+	public boolean isProbablyUsed(IFile file) {
+		return FileUtil.isDoctypeHTML(file);
+	}
 }

@@ -52,4 +52,12 @@ public class HTMLRecognizer implements ITagLibRecognizer {
 	protected boolean recalculateResult(ITagLibrary lib, ELContext context, IFile file) {
 		return context instanceof JspContextImpl || FileUtil.isDoctypeHTML(file);
 	}
+
+	/**
+	 * Default implementation does not filter out the library.
+	 */
+	@Override
+	public boolean isProbablyUsed(IFile file) {
+		return true;
+	}
 }

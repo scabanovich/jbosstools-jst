@@ -10,6 +10,7 @@
  ******************************************************************************/ 
 package org.jboss.tools.jst.web.kb.taglib;
 
+import org.eclipse.core.resources.IFile;
 import org.jboss.tools.common.el.core.resolver.ELContext;
 
 /**
@@ -23,4 +24,11 @@ public interface ITagLibRecognizer {
 	 * @return
 	 */
 	boolean shouldBeLoaded(ITagLibrary lib, ELContext context);
+
+	/**
+	 * 
+	 * @param file
+	 * @return
+	 */
+	boolean isProbablyUsed(IFile file);
 }

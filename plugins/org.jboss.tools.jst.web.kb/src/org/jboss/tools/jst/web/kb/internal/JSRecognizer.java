@@ -45,6 +45,11 @@ public abstract class JSRecognizer extends HTML5Recognizer implements ITagLibVer
 		return getJSReferenceVersion(file, getJSLibName())!=null;
 	}
 
+	@Override
+	public boolean isProbablyUsed(IFile file) {
+		return getJSReferenceVersion(file, getJSLibName())!= null;
+	}
+
 	public static String getJSReferenceVersion(IFile file, String jsLibName) {
 		return getJSReferenceVersion(file, jsLibName, false);
 	}

@@ -86,6 +86,7 @@ public class PaletteModel {
 		if (instance != null) {
 			if(file != null) {
 				instance.setPaletteContents(contents);
+				instance.expandPreferredCategory = false;
 				instance.load(null);
 			}
 			return instance;
@@ -205,6 +206,8 @@ public class PaletteModel {
 		return paletteRoot;
 	}
 
+	boolean expandPreferredCategory = true;
+
 	public void load(XModelObject lastAddedXCat) {
 		XModelObject xpalette = getXPaletteRoot();
 		if (paletteRoot == null) {
@@ -232,7 +235,7 @@ public class PaletteModel {
 			i++;
 		}
 		cutOff(paletteRoot, i);
-		if(lastAddedXCat == null) {
+		if(expandPreferredCategory && lastAddedXCat == null) {
 			String preferred = getPreferredExpandedCategory();
 			if(preferred != null) {
 				for (Object c: paletteRoot.getChildren()) {

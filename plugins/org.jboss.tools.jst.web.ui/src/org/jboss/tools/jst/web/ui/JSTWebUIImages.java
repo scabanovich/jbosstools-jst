@@ -57,6 +57,7 @@ public class JSTWebUIImages extends CommonUIImages{
 	public static String JS_CSS_IMAGE    = WIZARDS_PATH + "JS-CSSWizBan.png"; //$NON-NLS-1$
 	
 	public static String DROP_DOWN_LIST_IMAGE    = VIEWS_PATH + "list.png"; //$NON-NLS-1$
+	public static String FILTER_IMAGE    = VIEWS_PATH + "filter.png"; //$NON-NLS-1$
 
 	private static JSTWebUIImages INSTANCE;
 	

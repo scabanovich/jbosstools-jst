@@ -11,14 +11,23 @@
 package org.jboss.tools.jst.web.ui.internal.editor.jspeditor;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IExtension;
+import org.eclipse.core.runtime.IExtensionPoint;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 import org.jboss.tools.common.model.ui.views.palette.PaletteContents;
 import org.jboss.tools.jst.web.kb.internal.JQueryMobileRecognizer;
+import org.jboss.tools.jst.web.kb.taglib.ITagLibRecognizer;
+import org.jboss.tools.jst.web.ui.WebUiPlugin;
 import org.jboss.tools.jst.web.ui.palette.model.PaletteModel;
 
 /**
@@ -29,6 +38,7 @@ import org.jboss.tools.jst.web.ui.palette.model.PaletteModel;
 public class PagePaletteContents extends PaletteContents {
 	IEditorPart editorPart;
 	Map<String, CategoryVersion> categoryVersions = new HashMap<String, CategoryVersion>();
+	Set<String> recognizedCategories = new HashSet<String>();
 
 	public PagePaletteContents(IEditorPart editorPart) {
 		super(editorPart);
@@ -37,6 +47,7 @@ public class PagePaletteContents extends PaletteContents {
 		categoryVersions.put("jQuery Mobile", new CategoryVersion(new JQueryVersionComputer()));
 
 		computeVersions();
+		computeRecognized();
 	}
 
 	public IEditorPart getEditorPart() {
@@ -56,6 +67,7 @@ public class PagePaletteContents extends PaletteContents {
 	public boolean update() {
 		boolean r = super.update();
 		if(computeVersions()) {
+			computeRecognized();
 			r = true;
 		}		
 		return r;
@@ -84,6 +96,31 @@ public class PagePaletteContents extends PaletteContents {
 		return result;
 	}
 
+	boolean computeRecognized() {
+		boolean result = false;
+		IFile file = getFile();
+		String[] types = getNatureTypes();
+		if(types.length > 0 && PaletteModel.TYPE_HTML5.equals(types[0])) {
+			if(file != null) {
+				Set<String> rc = new HashSet<String>();
+				Map<String, ITagLibRecognizer> rs = getTaglibRecognizers();
+				for (Map.Entry<String, ITagLibRecognizer> e: rs.entrySet()) {
+					String name = e.getKey();
+					ITagLibRecognizer r = e.getValue();
+					if(r.isProbablyUsed(file)) {
+						rc.add(name);
+					}
+				}
+				if(!setsAreEqual(recognizedCategories, rc)) {
+					recognizedCategories = rc;
+					result = true;
+				}
+			}
+		}
+		
+		return result;
+	}
+
 	boolean mapsAreEqual(Map<String, String> map1, Map<String, String> map2) {
 		if(map1.size() != map2.size()) {
 			return false;
@@ -99,9 +136,25 @@ public class PagePaletteContents extends PaletteContents {
 		return true;
 	}
 
+	boolean setsAreEqual(Set<String> map1, Set<String> map2) {
+		if(map1.size() != map2.size()) {
+			return false;
+		}
+		for (String k: map2) {
+			if(!map1.contains(k)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	public String getVersion(String category) {
 		CategoryVersion v = categoryVersions.get(category);
 		return v == null ? null : v.getVersion();
+	}
+
+	public boolean isRecognized(String category) {
+		return recognizedCategories.contains(category);
 	}
 
 	public void setPreferredVersion(String category, String version) {
@@ -139,6 +192,29 @@ public class PagePaletteContents extends PaletteContents {
 		}		 
 	}
 
+	static String TAGLIB_RECOGNIZERS = "org.jboss.tools.jst.web.ui.taglibRecognizers";
+	static Map<String, ITagLibRecognizer> taglibRecognizers = null;
+
+	static Map<String, ITagLibRecognizer> getTaglibRecognizers() {
+		if(taglibRecognizers == null) {
+			Map<String, ITagLibRecognizer> tr = new HashMap<String, ITagLibRecognizer>();
+			IExtensionPoint point = Platform.getExtensionRegistry().getExtensionPoint(TAGLIB_RECOGNIZERS);
+		    for(IExtension extension: point.getExtensions()) {
+		        for(IConfigurationElement configurationElement: extension.getConfigurationElements()) {
+		        	String name = configurationElement.getAttribute("name");
+		        	try {
+		        		Object o = configurationElement.createExecutableExtension("class");
+		        		tr.put(name, (ITagLibRecognizer)o);
+		        	} catch (CoreException e) {
+		        		WebUiPlugin.getDefault().logError("Cannot load taglib recognizer for " + name, e);
+		        	}
+		        }
+		    }
+		    taglibRecognizers = tr;
+		}
+		return taglibRecognizers;
+	}
+
 }
 
 interface VersionComputer {
@@ -151,26 +227,5 @@ class JQueryVersionComputer implements VersionComputer {
 	@Override
 	public String computeVersion(IFile file) {
 		return JQueryMobileRecognizer.getVersion(file);
-//		String content = FileUtil.getContentFromEditorOrFile(file);
-//		int i = 0;
-//		while(i >= 0) {
-//			int j = content.indexOf(prefix, i);
-//			if(j < 0 || content.length() < j + prefix.length() + 3) {
-//				return null;
-//			}
-//			String delta = content.substring(i, j);
-//			int k = delta.lastIndexOf("<");
-//			if(k >= 0 && k + 6 < delta.length() && delta.substring(k, k + 7).toLowerCase().equals("<script")) {
-//				int u = delta.indexOf(">", k);
-//				if(u < 0) {
-//					i = j + prefix.length();
-//					return content.substring(i, i + 3);
-//				}
-//			}
-//			
-//			i = j + prefix.length();
-//		}
-//		
-//		return null;
 	}
 }

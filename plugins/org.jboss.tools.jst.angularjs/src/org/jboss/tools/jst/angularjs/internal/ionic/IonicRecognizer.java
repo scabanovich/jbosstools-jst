@@ -52,6 +52,15 @@ public class IonicRecognizer extends HTMLRecognizer {
 		return false;
 	}
 
+	@Override
+	public boolean isProbablyUsed(IFile file) {
+		if(FileUtil.isDoctypeHTML(file)) {
+			return JSRecognizer.getJSReferenceVersion(file, JS_LIB_NAME) != null
+				|| isAngularTemplate(file);
+		}
+		return false;
+	}
+
 	/**
 	 * Returns true if file has link to *.js or *.css resource 
 	 * with occurance of 'ionic' in the name of link.

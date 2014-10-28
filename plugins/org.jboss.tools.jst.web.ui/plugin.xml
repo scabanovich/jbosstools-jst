@@ -2211,6 +2211,7 @@
 
 	<extension-point id="openWithEditorExtension" name="Open With Editor Extension" schema="schema/openWithEditorExtension.exsd"/>
  <extension-point id="jscssLibs" name="JS/CSS libraries" schema="schema/jscssLibs.exsd"/>
+ <extension-point id="taglibRecognizers" name="taglibRecognizers" schema="schema/taglibRecognizers.exsd"/>
 	
 	<extension 
 		point="org.jboss.tools.common.text.ext.hyperlinkPartitioner"
@@ -2661,5 +2662,16 @@
 
 	<extension point="org.jboss.tools.jst.web.ui.jscssLibs">
 		<libs path="meta/js-css.xml"/>
-	</extension> 
+	</extension>
+	
+ 	<extension
+       point="org.jboss.tools.jst.web.ui.taglibRecognizers">
+       <taglibRecognizer
+             name="jQuery Mobile" class="org.jboss.tools.jst.web.kb.internal.JQueryMobileRecognizer">
+       </taglibRecognizer>
+       <taglibRecognizer
+             name="HTML" class="org.jboss.tools.jst.web.kb.internal.HTML5Recognizer">
+       </taglibRecognizer>
+ 	</extension> 
+	
 </plugin>

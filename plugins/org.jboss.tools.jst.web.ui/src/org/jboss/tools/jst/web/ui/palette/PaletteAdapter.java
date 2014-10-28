@@ -23,15 +23,20 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.dialogs.SearchPattern;
 import org.jboss.tools.common.model.XModel;
 import org.jboss.tools.common.model.XModelObject;
+import org.jboss.tools.common.model.XModelObjectConstants;
 import org.jboss.tools.common.model.event.XModelTreeEvent;
 import org.jboss.tools.common.model.event.XModelTreeListener;
 import org.jboss.tools.common.model.ui.ModelUIPlugin;
@@ -40,8 +45,10 @@ import org.jboss.tools.common.model.ui.views.palette.IPalettePageAdapter;
 import org.jboss.tools.common.model.ui.views.palette.PaletteContents;
 import org.jboss.tools.common.model.ui.views.palette.PaletteInsertManager;
 import org.jboss.tools.common.model.util.EclipseResourceUtil;
+import org.jboss.tools.jst.web.ui.JSTWebUIImages;
 import org.jboss.tools.jst.web.ui.WebUiPlugin;
 import org.jboss.tools.jst.web.ui.internal.editor.jspeditor.PagePaletteContents;
+import org.jboss.tools.jst.web.ui.palette.model.PaletteCategory;
 import org.jboss.tools.jst.web.ui.palette.model.PaletteItem;
 import org.jboss.tools.jst.web.ui.palette.model.PaletteModel;
 import org.jboss.tools.jst.web.ui.palette.model.PaletteRoot;
@@ -53,6 +60,9 @@ public class PaletteAdapter implements IPaletteAdapter {
 	private IPalettePageAdapter viewPart = null;
 	private PaletteModel model = null; 
 	private PaletteViewer viewer = null;
+	
+	private Text filterText = null;
+	private ToolItem recognizedCategoriesOnly = null;
 	private Control palette = null;
 	private DescriptionManager descriptionManager = null;
 	private DropTargetManager dropManager = null;
@@ -95,6 +105,10 @@ public class PaletteAdapter implements IPaletteAdapter {
 		pattern.setPattern("*"+text);
 		filter(model.getPaletteRoot());
 	}
+
+	public void filter() {
+		filter(filterText.getText());
+	}
 	
 	private void filter(String text){
 		pattern.setPattern("*"+text);
@@ -102,16 +116,31 @@ public class PaletteAdapter implements IPaletteAdapter {
 	}
 	
 	private void filter(PaletteContainer container){
-		List children = container.getChildren();
-		for(Object child : children){
-			if(!(child instanceof PaletteContainer)){
+		for(Object child : container.getChildren()) {
+			if(!(child instanceof PaletteContainer)) {
 				if(child instanceof PaletteItem){
 					PaletteItem entry = (PaletteItem)child;
-					if(pattern.matches(entry.getKeywordsAsString())){
-						entry.setVisible(true);
-					}else{
-						entry.setVisible(false);
+					if(pattern.matches(entry.getKeywordsAsString())) {
+						if(!entry.isVisible()) {
+							entry.setVisible(true);
+						}
+					} else {
+						if(entry.isVisible()) {
+							entry.setVisible(false);
+						}
 					}
+				}
+			} else if(child instanceof PaletteCategory) {
+				PaletteCategory c = (PaletteCategory)child;
+				String category = c.getLabel();
+				if(!recognizedCategoriesOnly.getSelection() 
+					|| paletteContents.isRecognized(category)) {
+					if(!c.isVisible()) {
+						c.setVisible(true);
+					}
+					filter(c);
+				} else if(c.isVisible()) {
+					c.setVisible(false);
 				}
 			} else {
 				filter((PaletteContainer)child);
@@ -126,7 +155,13 @@ public class PaletteAdapter implements IPaletteAdapter {
 		if(isMobile()) {
 			Composite container = new Composite(root, SWT.FILL);
 			container.setLayout(new GridLayout(1, false));
-			final Text text = new Text(container, SWT.SINGLE|SWT.BORDER|SWT.FILL|SWT.SEARCH|SWT.ICON_SEARCH|SWT.ICON_CANCEL);
+
+			Composite header = new Composite(container, SWT.FILL);
+			header.setLayout(new GridLayout(2, false));
+			header.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL
+	                | GridData.GRAB_HORIZONTAL));
+
+			final Text text = filterText = new Text(container, SWT.SINGLE|SWT.BORDER|SWT.FILL|SWT.SEARCH|SWT.ICON_SEARCH|SWT.ICON_CANCEL);
 			GridData data = new GridData(GridData.HORIZONTAL_ALIGN_FILL
                 | GridData.GRAB_HORIZONTAL);
 			text.setLayoutData(data);
@@ -137,6 +172,29 @@ public class PaletteAdapter implements IPaletteAdapter {
 					filter(text.getText());
 				}
 			});
+
+			ToolBar toolbar = new ToolBar(header, SWT.NONE);
+			toolbar.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+
+			ToolItem item = new ToolItem(toolbar, SWT.CHECK);
+			recognizedCategoriesOnly = item;
+			if(WebUiPlugin.getDefault().getPreferenceStore().getBoolean("org.jboss.tools.jst.web.ui.recognizedCategoriesOnly")) {
+				item.setSelection(true);
+			}
+			item.setImage(JSTWebUIImages.getInstance().getOrCreateImage(JSTWebUIImages.FILTER_IMAGE));
+			item.setToolTipText(PaletteUIMessages.PALETTE_FILTER_TOOLTIP);
+			item.addSelectionListener(new SelectionListener() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					WebUiPlugin.getDefault().getPreferenceStore().putValue("org.jboss.tools.jst.web.ui.recognizedCategoriesOnly", "" + recognizedCategoriesOnly.getSelection());
+					filter(model.getPaletteRoot());
+				}
+
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {
+				}
+			});
+
 			palette = viewer.createControl(container);
 			palette.setLayoutData(new GridData(GridData.FILL_BOTH));
 			result = container;
