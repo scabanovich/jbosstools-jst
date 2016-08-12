@@ -51,6 +51,10 @@ public abstract class AbstractKbProjectExtension implements IKbProjectExtension 
 		this.project = project;
 	}
 
+	public boolean exists() {
+		return project != null && project.isAccessible();
+	}
+
 	public Set<IKbProjectExtension> getDependentProjects() {
 		return usedBy;
 	}
